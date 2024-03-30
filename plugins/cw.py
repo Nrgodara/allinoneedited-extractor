@@ -1,25 +1,3 @@
-#  MIT License
-#
-#  Copyright (c) 2019-present Dan <https://github.com/delivrance>
-#
-#  Permission is hereby granted, free of charge, to any person obtaining a copy
-#  of this software and associated documentation files (the "Software"), to deal
-#  in the Software without restriction, including without limitation the rights
-#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#  copies of the Software, and to permit persons to whom the Software is
-#  furnished to do so, subject to the following conditions:
-#
-#  The above copyright notice and this permission notice shall be included in all
-#  copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#  SOFTWARE
-#  Code edited By Cryptostark
 import urllib
 import urllib.parse
 import requests
@@ -94,20 +72,33 @@ async def account_login(bot: Client, m: Message):
     s = requests.Session()
     data={}
     if "*" in raw_text:
-      data["email"] = raw_text.split("*")[0]
-      data["password"] = raw_text.split("*")[1]
-      await input1.delete(True)
-      #s = requests.Session()
-      response = s.post(url = url, headers=headers, json=data, timeout=10)
-      if response.status_code == 200:
-          data = response.json()
-          token = data["data"]["token"]
-          await m.reply_text(token)
-      else:
-          await m.reply_text("go back to response")
-      await m.reply_text(f"Here is your ```{token}```")
+        split_text = raw_text.split("*")
+        if len(split_text) != 2:
+            await m.reply_text("Invalid input format. Please provide ID and password separated by '*'.")
+            return
+
+        email = split_text[0]
+        password = split_text[1]
+
+        # Validate email and password format here if needed
+
+        data["email"] = email
+        data["password"] = password
+
+        await input1.delete(True)
+
+        try:
+            response = s.post(url=url, headers=headers, json=data, timeout=10)
+            response.raise_for_status()  # Raise an exception for non-200 status codes
+            data = response.json()
+            token = data["data"]["token"]
+            await m.reply_text(f"Here is your ```{token}```")
+        except requests.RequestException as e:
+            await m.reply_text(f"Unable to log in: {str(e)}. Please try again.")
+            return  # Exit the function if login fails
     else:
-      token = raw_text
+        token = raw_text
+
     html1 = s.get("https://elearn.crwilladmin.com/api/v5/comp/my-batch?&token=" + token).json()
     topicid = html1["data"]["batchData"]
     cool=""
@@ -115,7 +106,6 @@ async def account_login(bot: Client, m: Message):
         instructorName=(data["instructorName"])
         FFF="**BATCH-ID - BATCH NAME - INSTRUCTOR**"
         aa =f" ```{data['id']}```      - **{data['batchName']}**\n{data['instructorName']}\n\n"
-        #aa=f"**Batch Name -** {data['batchName']}\n**Batch ID -** ```{data['id']}```\n**By -** {data['instructorName']}\n\n"
         if len(f'{cool}{aa}')>4096:
             await m.reply_text(aa)
             cool =""
@@ -149,7 +139,6 @@ async def account_login(bot: Client, m: Message):
         tid = (data["id"])
         scraper = cloudscraper.create_scraper()
         ffx = s.get("https://elearn.crwilladmin.com/api/v1/comp/batch-detail/"+raw_text2+"?redirectBy=mybatch&topicId="+tid+"&token="+token).json()
-            #ffx = json.loads(html3)
         vcx =ffx["data"]["class_list"]["batchDescription"]
         vvx =ffx["data"]["class_list"]["classes"]
         vvx.reverse()
@@ -157,12 +146,11 @@ async def account_login(bot: Client, m: Message):
         BBB = f"{'**TOPIC-ID - TOPIC - VIDEOS**'}"
         hh = f"```{tid}```     - **{t_name} - ({zz})**\n"
 
-#         hh = f"**Topic -** {t_name}\n**Topic ID - ** ```{tid}```\nno. of videos are : {zz}\n\n"
-
         if len(f'{cool1}{hh}')>4096:
             await m.reply_text(hh)
             cool1=""
         cool1+=hh
+
     await m.reply_text(f'Batch details of **{bn}** are:\n\n{BBB}\n\n{cool1}\n\n**{vcx}**')
     editable2= await m.reply_text(f"Now send the **Topic IDs** to Download\n\nSend like this **1&2&3&4** so on\nor copy paste or edit **below ids** according to you :\n\n**Enter this to download full batch :-**\n```{vj}```")    
     input3 = message = await bot.listen(editable.chat.id)
@@ -171,80 +159,50 @@ async def account_login(bot: Client, m: Message):
         xv = raw_text3.split('&')
         for y in range(0,len(xv)):
             t =xv[y]
-        
-#              xvv = raw_text9.split('&')
-#              for z in range(0,len(xvv)):
-#                  p =xvv[z]
-
-            #gettting all json with diffrent topic id https://elearn.crwilladmin.com/api/v1/comp/batch-detail/881?redirectBy=mybatch&topicId=2324&token=d76fce74c161a264cf66b972fd0bc820992fe57
-            #scraper = cloudscraper.create_scraper()
             html4 = s.get("https://elearn.crwilladmin.com/api/v1/comp/batch-detail/"+raw_text2+"?redirectBy=mybatch&topicId="+t+"&token="+token).content
             ff = json.loads(html4)
-            #vc =ff.json()["data"]["class_list"]["batchDescription"]
             mm = ff["data"]["class_list"]["batchName"].replace("/ "," ")
             vv =ff["data"]["class_list"]["classes"]
             vv.reverse()
-            #clan =f"**{vc}**\n\nNo of links found in topic-id {raw_text3} are **{len(vv)}**"
-            #await m.reply_text(clan)
             count = 1
             try:
                 for data in vv:
                     vidid = (data["id"])
                     lessonName = (data["lessonName"]).replace("/", "_")
-                    
                     bcvid = (data["lessonUrl"][0]["link"])
-                     #lessonName = re.sub('\|', '_', cf)
 
                     if bcvid.startswith("62"):
                         try:
-                            #scraper = cloudscraper.create_scraper()
                             html6 = s.get(f"{bc_url}/{bcvid}", headers=bc_hdr).content
                             video = json.loads(html6)
                             video_source = video["sources"][5]
                             video_url = video_source["src"]
-                            #print(video_url)
-                            #scraper = cloudscraper.create_scraper()
                             html5 = s.get("https://elearn.crwilladmin.com/api/v1/livestreamToken?type=brightcove&vid="+vidid+"&token="+token).content
                             surl = json.loads(html5)
                             stoken = surl["data"]["token"]
-                            #print(stoken)
-                            
                             link = (video_url+"&bcov_auth="+stoken)
-                            #print(link)
                         except Exception as e:
                             print(str(e))
-                    #cc = (f"{lessonName}:{link}")
-                    #await m.reply_text(cc)
                     elif bcvid.startswith("63"):
                         try:
-                            #scraper = cloudscraper.create_scraper()
                             html7 = s.get(f"{bc_url}/{bcvid}", headers=bc_hdr).content
                             video1 = json.loads(html7)
                             video_source1 = video1["sources"][5]
                             video_url1 = video_source1["src"]
-                            #print(video_url)
-                            #scraper = cloudscraper.create_scraper()
                             html8 = s.get("https://elearn.crwilladmin.com/api/v1/livestreamToken?type=brightcove&vid="+vidid+"&token="+token).content
                             surl1 = json.loads(html8)
                             stoken1 = surl1["data"]["token"]
-                            #print(stoken)
-                            
                             link = (video_url1+"&bcov_auth="+stoken1)
-                            #print(link)
                         except Exception as e:
                             print(str(e))
-                    #cc = (f"{lessonName}:{link}")
-                    #await m.reply_text(cc)
                     else:
                         link=("https://www.youtube.com/embed/"+bcvid)
                     cc = (f"{lessonName}::{link}")
                     with open(f"{mm }{t_name}.txt", 'a') as f:
                         f.write(f"{lessonName}:{link}\n")
-                    #await m.reply_document(f"{mm }{t_name}.txt")
             except Exception as e:
                 await m.reply_text(str(e))
         await m.reply_document(f"{mm }{t_name}.txt")
-        #os.remove(f"{mm }{t_name}.txt")
     except Exception as e:
         await m.reply_text(str(e))
     try:
@@ -262,7 +220,6 @@ async def account_login(bot: Client, m: Message):
             k.reverse()
             count1 = 1
             try:
-                
                 for data in k:
                     name=(data["docTitle"])
                     s=(data["docUrl"]) 
@@ -271,10 +228,8 @@ async def account_login(bot: Client, m: Message):
                         f.write(f"{name}:{s}\n")
                     continue
                 await m.reply_document(f"{mm }{t_name}.txt")
-                    
             except Exception as e:
                 await m.reply_text(str(e))
-            #await m.reply_text("Done")
     except Exception as e:
         print(str(e))
     await m.reply_text("Done")
