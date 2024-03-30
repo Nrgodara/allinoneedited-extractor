@@ -68,11 +68,17 @@ def pull_run(work, cmds):
         fut = executor.map(exec,cmds)
         for result in results:
 	        print(result) 
+#bot = Client(
+  #"CW",
+  #bot_token="6415777909:AAE72fd1b1GVkICgNRll8OvHhplORD_57qg",
+  #api_id=15816419,
+  #api_hash="626ed6dab78881858778d9663682962e"
+#)
 bot = Client(
   "CW",
-  bot_token="6415777909:AAE72fd1b1GVkICgNRll8OvHhplORD_57qg",
-  api_id=15816419,
-  api_hash="626ed6dab78881858778d9663682962e"
+  bot_token="6133615836:AAGKs8ABEtWSoeztRyhOVD5VQ8uIaS3ZHHI",
+  api_id=6276029,
+  api_hash="ae49c8186279f4f1e76418792e316bd8"
 )
 
 @bot.on_message(filters.command(["down"]))
